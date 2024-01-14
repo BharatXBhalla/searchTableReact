@@ -4,20 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 function App() {
-	const [data, setData] = useState([]);
-
-	useEffect(() => {
-		fetch("http://localhost:5001/api/v1/candidates")
-			.then((response) => response.json())
-			.then((json) => {
-				console.log(json);
-				setData(json.data);
-				setFilteredData(json.data);
-			})
-			.catch((error) => console.error(error));
-	}, []);
-
-	const [tableParams, setTableParams] = useState({
+		const [tableParams, setTableParams] = useState({
 		sortBy: "none",
 		filterBy: {
 			name: "",
@@ -25,6 +12,58 @@ function App() {
 			positionApplied: "",
 		},
 	});
+	const [searchParams, setSearchParams] = useSearchParams();
+	
+	const [data, setData] = useState([]);
+
+	useEffect(() => {
+
+		const tmp=searchParams.entries();
+		let _tableParams={
+			sortBy: "none",
+			filterBy: {
+				name: "",
+				status: "",
+				positionApplied: "",
+			},
+		}
+		for (const [key, value] of tmp) {
+			console.log(key,value);
+			if(key=="filterBy_name"){
+				console.log("setting")
+				_tableParams.filterBy.name=value;
+			}
+
+			if(key == "filterBy_pos"){
+				_tableParams.filterBy.positionApplied=value;
+
+			}
+
+			if(key=="filterBy_status"){
+				_tableParams.filterBy.status=value;
+
+			}
+
+			if(key=="sortBy"){
+				_tableParams.sortBy=value;
+			}
+		}
+
+		
+
+
+		fetch("http://localhost:5001/api/v1/candidates")
+			.then((response) => response.json())
+			.then((json) => {
+				console.log(json);
+				setData(json.data);
+				setFilteredData(json.data);
+				setTableParams(_tableParams);
+			})
+			.catch((error) => console.error(error));
+	}, []);
+
+
 
 	const [filteredData, setFilteredData] = useState(data);
 
@@ -98,6 +137,13 @@ function App() {
 		setFilteredData(newFilteredData);
 
 		// useSearchParams(tableParams);
+
+		setSearchParams({
+			sortBy: tableParams.sortBy,
+			filterBy_name: tableParams.filterBy.name,
+			filterBy_pos:tableParams.filterBy.positionApplied,
+			filterBy_status:tableParams.filterBy.status,
+		})
 	}, [tableParams]);
 
 	return (
@@ -110,6 +156,7 @@ function App() {
 					id="sortBy"
 					onChange={onSortByChange}
 					value={tableParams.sortBy}
+					defaultValue={tableParams.sortBy}
 				>
 					<option value="none"></option>
 					<option value="postionApplied">Position Applied</option>
@@ -127,6 +174,8 @@ function App() {
 							<input
 								type="search"
 								onChange={onSearchParamChange("name")}
+								value={tableParams.filterBy.name}
+								defaultValue={tableParams.filterBy.name}
 							></input>
 						</th>
 						<th>Email</th>
@@ -137,6 +186,8 @@ function App() {
 							<input
 								type="search"
 								onChange={onSearchParamChange("positionApplied")}
+								value={tableParams.filterBy.positionApplied}
+								defaultValue={tableParams.filterBy.positionApplied}
 							></input>
 						</th>
 						<th>Applied</th>
@@ -145,6 +196,8 @@ function App() {
 							<input
 								type="search"
 								onChange={onSearchParamChange("status")}
+								value={tableParams.filterBy.status}
+								defaultValue={tableParams.filterBy.status}
 							></input>
 						</th>
 					</tr>
